@@ -108,5 +108,4 @@ Edit or add a file under `tasks/<task_type>.json`. Weights must sum to 1.0. The 
 - A real Verify node: second-source fetch + field-level `verified` flag and `conflicts` merge.
 - Token-level cost cap.
 - Remaining opportunity types with task files and sources (media, partnerships, pitch comps, accelerators, meetups).
-- Feedback loop: a human "approve/reject" reply to the email that adjusts weights.
 - A more descriptive email report.
