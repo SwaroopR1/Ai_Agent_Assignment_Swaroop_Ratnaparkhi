@@ -102,7 +102,7 @@ Edit or add a file under `tasks/<task_type>.json`. Weights must sum to 1.0. The 
 ## Known limits
 - **Verification is single-source.** Each fact is cited with `checked_date` and `source_urls`, but a second-source cross-check is not yet automated; rows are therefore effectively "single-source cited", not "cross-verified".
 - **Opportunity-type coverage in this build is 3** (community, conference, grants). The engine itself is type-agnostic — adding `media`, `partnership`, `pitch_competition`, `accelerator`, `meetup` is a `tasks/<type>.json` + `sources.json` entry, no code.
-- **Cost cap is character-count based** (100000 characters per <i>run<i>). It is not an LLM-token cap.
+- **Cost cap is character-count based** (100000 characters per <i>run</i>). It is not an LLM-token cap.
 - **The source registry is small.** It needs to have more sources including diverse channels - APIs, html_pages, rss.
 ## What I'd add with more time
 - A real Verify node: second-source fetch + field-level `verified` flag and `conflicts` merge.
