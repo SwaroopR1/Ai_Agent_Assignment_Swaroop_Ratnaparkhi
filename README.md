@@ -91,6 +91,10 @@ error-alert workflow.
 4. Set the destination email on the three Gmail nodes (currently `swaroop.ratnaparkhi@gmail.com`).
 5. Run the main workflow manually once, then enable it. It will fire at 02:00 Asia/Kolkata.
 
+   No API keys or secrets are in this repo. Workflow JSONs reference n8n credentials by credential ID — an opaque pointer, not a secret; it only resolves inside the owning n8n instance.
+
+
+
 ## Changing task weights (no code)
 Edit or add a file under `tasks/<task_type>.json`. Weights must sum to 1.0. The workflow picks it up on the next execution; every row records `weights_source` so you can see which file produced the score.
 
