@@ -1,0 +1,20 @@
+{
+  "task_type": "grants",
+  "version": 1,
+  "updated": "2026-11-14",
+  "weights_sum_to": 1.0,
+  "weights": {
+    "award_size": 0.35,
+    "eligibility_fit": 0.30,
+    "effort_inverse": 0.15,
+    "strategic_value": 0.10,
+    "deadline_urgency": 0.10
+  },
+  "rationale": {
+    "award_size": "Money is the point; normalized to runway so a $10k grant at Series A scores low.",
+    "eligibility_fit": "A perfect grant you can't apply for is worthless; hard eligibility gates.",
+    "effort_inverse": "Applications take real time; a $5k grant needing 40 hours is a bad trade.",
+    "strategic_value": "Intros, press, and city relationships that outlast the cash.",
+    "deadline_urgency": "Grant windows are fixed and non-negotiable; miss it and wait a year."
+  }
+}

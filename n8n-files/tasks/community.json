@@ -1,0 +1,22 @@
+{
+  "task_type": "community",
+  "version": 1,
+  "updated": "2026-11-14",
+  "weights_sum_to": 1.0,
+  "weights": {
+    "audience_fit": 0.30,
+    "promotion_allowed": 0.20,
+    "reach": 0.15,
+    "timing": 0.15,
+    "effort_inverse": 0.10,
+    "cost_inverse": 0.10
+  },
+  "rationale": {
+    "audience_fit": "If the room isn't our buyers, nothing else rescues it.",
+    "promotion_allowed": "Communities that ban self-promo are listening channels, not marketing ones.",
+    "reach": "Size matters only after fit and permission; dead large groups lose to small active ones.",
+    "timing": "Launch windows and AMA slots close fast; a missed window kills the opportunity.",
+    "effort_inverse": "Bounded effort - worst case is a few weeks of engagement, unlike travel or integrations.",
+    "cost_inverse": "Communities are mostly free; cost only matters for paid sponsorships or memberships."
+  }
+}

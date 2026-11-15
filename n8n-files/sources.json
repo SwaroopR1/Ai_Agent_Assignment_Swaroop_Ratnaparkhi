@@ -1,0 +1,149 @@
+{
+  "sources": [
+    {
+      "id": "foundida",
+      "urls": [
+        "https://foundida.com/funding-opportunities"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "grants"
+      ],
+      "access_type": "free",
+      "reliability": "medium",
+      "update_frequency": "hourly",
+      "coverage": "Funding opportunites for startup",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public forum page."
+    },
+    {
+      "id": "startup_expo_iitb",
+      "urls": [
+        "https://www.ecell.in/esummit/expo"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "community"
+      ],
+      "access_type": "free",
+      "reliability": "high",
+      "update_frequency": "hourly",
+      "coverage": "Networking for startup",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public forum page."
+    },
+    {
+      "id": "startupindia",
+      "urls": [
+        "https://www.startupindia.gov.in/content/sih/en/ams-application/application-listing.html#maintab-set"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "pitch_competition"
+      ],
+      "access_type": "free",
+      "reliability": "high",
+      "update_frequency": "weekly",
+      "coverage": "Pitch competitions supported by the Indian government.",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public events page."
+    },
+    {
+      "id": "iima_events",
+      "urls": [
+        "https://www.iima.ac.in/the-institute/events"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "conference"
+      ],
+      "access_type": "free",
+      "reliability": "high",
+      "update_frequency": "weekly",
+      "coverage": "Events at IIM Ahmedabad",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public events page."
+    },
+    {
+      "id": "bookmyshow",
+      "urls": [
+        "https://in.bookmyshow.com/explore/conferences-bengaluru/"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "community"
+      ],
+      "access_type": "captcha",
+      "reliability": "medium",
+      "update_frequency": "weekly",
+      "coverage": "Startup and corporate events in Bengaluru - founder meetups, networking.",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public event tickets page."
+    },
+    {
+      "id": "hacker_news",
+      "urls": [
+        "https://news.ycombinator.com/rss"
+      ],
+      "feed_type": "rss",
+      "opportunity_types": [
+        "community"
+      ],
+      "access_type": "free",
+      "reliability": "high",
+      "update_frequency": "weekly",
+      "coverage": "Public tech forum RSS. High-volume; filter for startup/launch threads.",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "Verified RSS path. Kind: startup/VC newsletter-style source."
+    },
+    {
+      "id": "jhu_tech_ventures",
+      "urls": [
+        "https://ventures.jhu.edu/events/category/pitch-competitions/"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "pitch_competition"
+      ],
+      "access_type": "captcha",
+      "reliability": "high",
+      "update_frequency": "weekly",
+      "coverage": "Pitch competitions at John Hopkins Unviersity.",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public events page."
+    },
+    {
+      "id": "product_hunt",
+      "urls": [
+        "https://www.producthunt.com/forums?ref=header_nav&order=new&page=1"
+      ],
+      "feed_type": "html_public",
+      "opportunity_types": [
+        "community"
+      ],
+      "access_type": "captcha",
+      "reliability": "medium",
+      "update_frequency": "hourly",
+      "coverage": "Product Hunt community",
+      "check_cadence": "nightly",
+      "verified": true,
+      "last_verified_at": "2026-11-12",
+      "notes": "No RSS. Public forum page."
+    },
+    { "__is_last": true }
+  ]
+}

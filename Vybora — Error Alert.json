@@ -1,0 +1,69 @@
+{
+  "name": "Vybora — Error Alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "699bf84c-f857-4fbb-a92c-1fff3853b772",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "swaroop.ratnaparkhi@gmail.com",
+        "subject": "==🚨 Vybora nightly FAILED — {{ $json.workflow.name }}",
+        "emailType": "text",
+        "message": "=Vybora nightly run failed.  Workflow: {{ $json.workflow.name }} Execution: {{ $json.execution.id }} ({{ $json.execution.url }}) Node: {{ $json.execution.lastNodeExecuted }} Time: {{ $json.execution.startedAt }}  Error: {{ $json.execution.error.message }}  Stack (first 500 chars): {{ $json.execution.error.stack.slice(0, 500) }}  What to check: open the execution URL, find the failed node, fix or skip that source. The report for tonight has NOT been sent.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ce7aca11-0c73-4a58-b188-20c950125418",
+      "name": "Send a message",
+      "webhookId": "8fb75000-b8ee-44e4-b9b6-db5791736b83",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u7YFLESSgi2inPqW",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e22100c6-08c9-4cb9-868a-6e787939bd70",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cdad2b7e148d9a6e95d20c8869a7f8b47e4dddd3152e8b8d203ee7172e295c82"
+  },
+  "nodeGroups": [],
+  "id": "vb1XSkpCuBcin7U5",
+  "tags": []
+}

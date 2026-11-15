@@ -1,0 +1,696 @@
+{
+  "name": "Vybora Marketing and Partnership Opportunities Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        -800
+      ],
+      "id": "cd2bcf36-13dd-4df6-8edd-723d791b006a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/data/sources.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        -800
+      ],
+      "id": "8c148bd8-b750-4017-894a-a1b0be8b67f5",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst TASKS_DIR = '/data/tasks';\n\n// Load every task config once per execution\nconst taskConfigs = {};\nif (fs.existsSync(TASKS_DIR)) {\n  for (const f of fs.readdirSync(TASKS_DIR)) {\n    if (!f.endsWith('.json')) continue;\n    const cfg = JSON.parse(fs.readFileSync(path.join(TASKS_DIR, f), 'utf8'));\n    taskConfigs[cfg.task_type] = cfg;\n  }\n}\n\nconst FALLBACK = { audience_fit: 0.5, cost_efficiency: 0.5 };\n\nconst binaryBuffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst doc = JSON.parse(binaryBuffer.toString('utf8'));\n\nreturn doc.sources.map(s => {\n  const taskType = (s.opportunity_types && s.opportunity_types[0]) || 'unknown';\n  const cfg = taskConfigs[taskType];\n  return {\n    json: {\n      ...s,\n      _task_type: taskType,\n      _weights: cfg ? cfg.weights : FALLBACK,\n      _weights_source: cfg ? `tasks/${taskType}.json` : 'FALLBACK_default',\n      __is_last: s.__is_last === true\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -800
+      ],
+      "id": "965bf62b-6ff6-4aca-a27a-fa3b4a1d29be",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        320,
+        -800
+      ],
+      "id": "d5949653-80eb-4c52-b7e3-40a4691ce94c",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        -1280
+      ],
+      "id": "f06f4570-d272-44e5-b6c2-9ab7f6da28da",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "urls",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        -1280
+      ],
+      "id": "6d0f1bdc-a4c1-426e-8900-29af71e5463d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "cf9c1c4b-5a47-4ff7-9911-2864762d5dad",
+              "leftValue": "={{ $json.access_type }}",
+              "rightValue": "=403_blocked",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "c9c8a59c-2f4d-4c68-9b48-a25deabbdf51",
+              "leftValue": "={{ $json.access_type }}",
+              "rightValue": "captcha",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "8d9f0c8f-aeb7-433a-ba70-a53d65bf938e",
+              "leftValue": "={{ $json.__is_last }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        288,
+        -1264
+      ],
+      "id": "ed13aabc-b649-4654-aced-e6d9730f185d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an AI scouting for Vybora, a startup helping corporate professionals for effective communications.\nTask type: {{ $('Code in JavaScript').item.json._task_type }}.\n\nIf Task type is \"media\": Look for podcasts, newsletters, journalists asking for pitches, or \"startups to watch\" lists. Do NOT extract general news articles or IPO announcements.\n\nTASK: Extract every opportunity on this page into the schema below, then score each one on these decision factors:\n\n{{ Object.keys($('Code in JavaScript').item.json._weights).join(', ') }}\n\nFor EACH factor, give an integer 1-5 where 5 is best for Vybora. Interpret factor names literally (e.g. low_competitor_presence: 5 = almost no competitors there; cost_efficiency: 5 = cheap). If the page does not say enough to judge a factor, score 3 and say why in its justification.\n\nReturn ONLY a top-level JSON array. Each element:\n{\n  \"name\": \"\", \"organizer\": \"\", \"link\": \"\", \"city\": \"\",\n  \"dates\": \"\", \"cost\": \"\", \"deadline\": \"\",\n  \"source_urls\": [\"\"], \"access_class\": \"free|login|email|paid|sponsored\",\n  \"conflicts\": [],\n  \"signals\": { \"<every factor key above>\": 1-5 },\n  \"signal_justification\": { \"<every factor key above>\": \"one short sentence\" }\n}\n\nRules: every factor key must appear in BOTH objects. Never invent facts; mark unknown fields \"unknown\". Put disagreements between page sections in \"conflicts\" rather than picking one. If the page has no opportunities, return []."
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=Extract opportunities from this page: {{ $json.text }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1552,
+        -1280
+      ],
+      "id": "cb6a07d6-b51c-4344-b3c7-320f19c47b9c",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        -1104
+      ],
+      "id": "71ac6862-063a-46a4-9b28-ddc0a546b0ba",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NaNZMVyURVKqc4j3",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "text",
+              "cssSelector": "body"
+            }
+          ]
+        },
+        "options": {
+          "cleanUpText": true
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        -1280
+      ],
+      "id": "a5360967-ebe7-4ee5-b369-ab9b4eab7d34",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date().toISOString().slice(0, 10);\n\nlet raw = $json.text || $json.output || $json;\nraw = raw.toString().replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet arr;\ntry {\n  arr = JSON.parse(raw);\n  if (!Array.isArray(arr)) arr = [arr];\n} catch (e) {\n  return [{ json: {\n    status: \"parse_error\",\n    error: String(e).slice(0, 200),\n    source: $('Code in JavaScript').item.json.id,\n    checked_date: today\n  }}];\n}\n\nfunction hashString(str) {\n  let hash = 2166136261;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = Math.imul(hash, 16777619);\n  }\n  return (hash >>> 0).toString(16);\n}\n\nconst src = $('Code in JavaScript').item.json;\n\nreturn arr.map(o => {\n  const id = hashString(`${o.name}|${o.organizer}|${o.link}`);\n  return { \n    json: { \n      ...o, \n      opportunity_id: id,\n      status: \"new\",\n      _task_type: src._task_type,\n      _weights: src._weights,\n      _weights_source: src._weights_source,\n      checked_date: today\n    } \n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        -1280
+      ],
+      "id": "538ffc13-938c-43df-a4c7-e46e284d8d64",
+      "name": "Normalize + ID",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = '/data/opportunities.jsonl';\n\nconst STABLE = ['name','organizer','link','city','dates','cost','deadline','source_urls'];\n\nconst stable = o => JSON.stringify(STABLE.map(k => o[k] ?? null));\n\nconst prev = fs.existsSync(path)\n  ? fs.readFileSync(path, 'utf8').trim().split('\\n').filter(Boolean).map(JSON.parse)\n  : [];\n\n// Keep only the latest version of each id (last write wins)\nconst prevById = new Map();\nfor (const o of prev) prevById.set(o.opportunity_id, stable(o));\n\nreturn items.map(item => {\n\n  const o = item.json;\n  if (o.status === 'parse_error') {\n    return { json: o };\n  }\n\n  const before = prevById.get(item.json.opportunity_id);\n  const status = !before ? 'new' : (before === stable(item.json) ? 'unchanged' : 'changed');\n  return { json: { ...item.json, status } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        -1280
+      ],
+      "id": "711d951b-15b0-4bf4-ae95-fd62642ef69f",
+      "name": "Diff vs Previous Run"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = '/data/opportunities.jsonl';\n\nconst lines = items\n  .filter(i => i.json && i.json.opportunity_id && i.json.status !== 'parse_error')\n  .map(i => JSON.stringify(i.json))\n  .join('\\n');\n\nif (lines) fs.appendFileSync(path, lines + '\\n');\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        -1280
+      ],
+      "id": "5c77991f-b762-4b3a-9967-add06baaf3d4",
+      "name": "Persist JSONL"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst SESSIONS = '/data/sessions';\nif (!fs.existsSync(SESSIONS)) fs.mkdirSync(SESSIONS, { recursive: true });\n\nconst clamp = v => Math.min(5, Math.max(1, v));\n\nreturn $input.all().map(item => {\n  const o = item.json;\n  const w = o._weights || {};\n  const s = o.signals || {};\n  const j = o.signal_justification || {};\n  const missing = [];\n\n  let sum = 0, wsum = 0;\n  const contrib = [];\n  for (const [k, weight] of Object.entries(w)) {\n    let v = Number(s[k]);\n    if (!Number.isFinite(v)) { missing.push(k); v = 3; }\n    v = clamp(v);\n    sum += v * weight;\n    wsum += weight;\n    contrib.push({ k, v, w: weight, c: v * weight });\n  }\n\n  const score = wsum > 0 ? +(sum / wsum).toFixed(2) : 0;\n  contrib.sort((a, b) => b.c - a.c);\n  const [top, second] = contrib;\n\n  let why = top ? `${top.k} ${top.v}/5 — ${j[top.k] || 'no justification'}` : 'no signals';\n  if (second) why += `; also ${second.k} ${second.v}/5`;\n  if (missing.length) why += ` (missing: ${missing.join(',')})`;\n\n  const row = {\n    ...o,\n    score,\n    score_scale: '1-5',\n    ranking_explanation: why,\n    signals_missing: missing,\n    weights_source: o._weights_source || 'unknown'\n  };\n\n  // write this row to the run's staging file\n  const sessionId = String($execution.id);\n  if (sessionId) {\n    fs.appendFileSync(`${SESSIONS}/session_id_${sessionId}.jsonl`, JSON.stringify(row) + '\\n');\n  }\n\n  return { json: row };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        -1120
+      ],
+      "id": "bf030fa4-c283-43c0-b975-af0d9e17a15b",
+      "name": "Score"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst SESSIONS = '/data/sessions';\n\nconst sessionId = String($execution.id);\nconst path = `${SESSIONS}/session_id_${sessionId}.jsonl`;\n\nif (!fs.existsSync(path)) return [];   // empty run → report \"no change\"\n\nconst lines = fs.readFileSync(path, 'utf8').trim().split('\\n').filter(Boolean);\nreturn lines\n  .map(l => ({ json: JSON.parse(l) }))\n  .sort((a, b) => b.json.score - a.json.score);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -1072
+      ],
+      "id": "a883665d-302f-43ce-a6a9-f974a5b28f75",
+      "name": "Load Run",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3b5fea22-b66d-46e2-a7ac-387a62d35494",
+              "leftValue": "={{ $json.__is_last }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        -1072
+      ],
+      "id": "be189bd0-b2ab-4387-a52c-701876b47e3a",
+      "name": "End of loop?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const NOW = new Date();\nconst FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;\n// 14 days in milli second\n\n// Defensive: deadline/dates are free-text from the model\nfunction parseDate(s) {\n  if (!s || typeof s !== 'string') return null;\n  const t = s.trim();\n  if (/unknown|tba|tbd|^$/i.test(t)) return null;\n  const d = new Date(t);\n  return isNaN(d) ? null : d;\n}\n\nconst all = $input.all().map(i => i.json);\nconst real = all.filter(o => o.status !== 'parse_error');\nconst markers = all.filter(o => o.status === 'parse_error');\n\n// Sort once by score desc (Score node already sorted; keep explicit)\nconst sorted = [...real].sort((a, b) => (b.score || 0) - (a.score || 0));\n\nconst isNew     = o => o.status === 'new';\nconst isChanged = o => o.status === 'changed';\n\n// Deadlines: only rows whose deadline parses AND falls within [now, now+14d]\nconst deadlines = sorted\n  .map(o => {\n    const d = parseDate(o.deadline);\n    return d ? { ...o, _deadline_date: d.toISOString().slice(0,10) } : null;\n  })\n  .filter(o => o && o._deadline_date >= NOW.toISOString().slice(0,10)\n            && new Date(o._deadline_date) - NOW <= FOURTEEN_DAYS);\n\n// Unparseable deadlines: flag, don't drop (a person still needs to see them)\nconst unparsed = sorted.filter(o => o.deadline && o.deadline !== 'unknown'\n                                 && !parseDate(o.deadline));\n\n// Top pick: highest-scored new row; fall back to highest overall if nothing new\nconst topPick = sorted.find(isNew) || sorted[0] || null;\n\n// Action needed: new + score>=4, OR any changed row, OR deadline in 3 days\nconst actionNeeded = sorted.filter(o => {\n  if (isNew(o) && (o.score || 0) >= 4) return true;\n  if (isChanged(o)) return true;\n  const d = parseDate(o.deadline);\n  return d && d - NOW >= 0 && d - NOW <= 3 * 24 * 60 * 60 * 1000;\n});\n\nconst report = {\n  generated_at: NOW.toISOString(),\n  top_pick: topPick,\n  action_needed: actionNeeded,\n  new:      sorted.filter(isNew),\n  changed:  sorted.filter(isChanged),\n  unchanged_count: sorted.filter(o => o.status === 'unchanged').length,\n  deadlines_14d: deadlines,\n  unparsed_deadlines: unparsed.map(o => ({ name: o.name, deadline: o.deadline })),\n  totals: {\n    total: sorted.length,\n    new: sorted.filter(isNew).length,\n    changed: sorted.filter(isChanged).length,\n    unchanged: sorted.filter(o => o.status === 'unchanged').length,\n    parse_errors: markers.length\n  }\n};\n\nconst newList = report.new.slice(0, 5).map(o => `<li><strong>${o.name}</strong> — score ${o.score}</li>`).join('');\nconst actionList = actionNeeded.slice(0, 5).map(o => `<li><strong>${o.name}</strong> (score ${o.score}) — ${o.ranking_explanation}</li>`).join('');\nconst deadlineList = deadlines.map(o => `<li>${o.name} — due ${o._deadline_date}</li>`).join('');\n\nconst parseLine = report.totals.parse_errors > 0\n  ? `<p><em>⚠️ ${report.totals.parse_errors} source(s) failed to parse — check session-log.jsonl (sources: ${markers.map(m => m.source || 'unknown').join(', ')}).</em></p>`\n  : '';\n\nif (report.totals.new === 0 && report.totals.changed === 0) {\n  report.memo_html = `<p>No change tonight.</p>${parseLine}`;\n} else {\n  report.memo_html = `\n    <h2>Top pick — ${topPick?.name || 'none'}</h2>\n    <p>${topPick ? `Score ${topPick.score}/5. ${topPick.ranking_explanation}. Deadline: ${topPick.deadline || 'unknown'}.` : 'No opportunities tonight.'}</p>\n    \n    <h2>Action needed (${actionNeeded.length})</h2>\n    <ul>${actionList || '<li>None</li>'}</ul>\n    \n    <h2>What's new (${report.totals.new} new, ${report.totals.changed} changed)</h2>\n    <ul>${newList || '<li>None</li>'}</ul>\n    \n    <h2>Deadlines in 14 days (${deadlines.length})</h2>\n    <ul>${deadlineList || '<li>None</li>'}</ul>\n    \n    ${parseLine}\n  `;\n}\n\nreturn [{ json: report }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -1072
+      ],
+      "id": "041642ef-5ed7-44d3-adf0-a6b08e993b4c",
+      "name": "Build Report"
+    },
+    {
+      "parameters": {
+        "sendTo": "swaroop.ratnaparkhi@gmail.com",
+        "subject": "==Vybora nightly — {{ $json.totals.new }} new, {{ $json.totals.changed }} changed",
+        "message": "={{ $json.memo_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        -880
+      ],
+      "id": "969a758e-8580-4812-bf08-a7862d2d25bf",
+      "name": "Send Complete Report",
+      "webhookId": "fc986760-417a-4a41-824d-dca9ee0cd135",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u7YFLESSgi2inPqW",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "swaroop.ratnaparkhi@gmail.com",
+        "subject": "=={{ $json.top_pick ? '🚨 Top pick: ' + $json.top_pick.name : 'Vybora nightly — No top pick tonight' }}",
+        "message": "=<p><strong>Found a top opportunity tonight.</strong></p>\n<p>\n  <strong>{{ $json.top_pick.name }}</strong> — {{ $json.top_pick.organizer || 'organizer unknown' }}<br>\n  <strong>Score:</strong> {{ $json.top_pick.score }}/5<br>\n  <strong>Why:</strong> {{ $json.top_pick.ranking_explanation }}<br>\n  <strong>Deadline:</strong> {{ $json.top_pick.deadline || 'unknown' }}<br>\n  <strong>Location:</strong> {{ $json.top_pick.city || 'unknown' }}{{ $json.top_pick.dates ? ' · ' + $json.top_pick.dates : '' }}<br>\n  <strong>Cost:</strong> {{ $json.top_pick.cost || 'unknown' }}<br>\n  <strong>Access:</strong> {{ $json.top_pick.access_class || 'unknown' }}<br>\n  <strong>Link:</strong> <a href=\"{{ $json.top_pick.link }}\">{{ $json.top_pick.link || 'unknown' }}</a>\n</p>\n<p><em>What to do next: review the page, confirm the deadline and eligibility, then decide whether to apply, speak, or reach out. Nothing has been sent on your behalf.</em></p>\n<p>Full report: {{ $json.totals.new }} new, {{ $json.totals.changed }} changed, {{ $json.totals.unchanged }} unchanged since last run.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        -880
+      ],
+      "id": "1353222a-35df-4858-8d50-3874e529bb55",
+      "name": "Send Top Pick",
+      "webhookId": "78469a27-d220-4b6a-a277-962e95c246ac",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u7YFLESSgi2inPqW",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst LOG = '/data/sessions/session-log.jsonl';\nconst SESSIONS = '/data/sessions';\n\n// Rebuild the picture from this run's staging file + current $json report\nconst report = $json;\nconst sessionId = String($execution.id);\nconst staging = `${SESSIONS}/session_id_${sessionId}.jsonl`;\n\nlet rows = [];\nif (fs.existsSync(staging)) {\n  rows = fs.readFileSync(staging, 'utf8').trim().split('\\n').filter(Boolean).map(JSON.parse);\n}\n\nconst parseErrors = rows.filter(r => r.status === 'parse_error');\nconst sourcesChecked = new Set(rows.map(r => r.source).filter(Boolean)).size;\n\nconst entry = {\n  run_at: new Date().toISOString(),\n  session_id: sessionId,\n  sources_checked: sourcesChecked || rows.length,\n  new: report.totals?.new ?? 0,\n  changed: report.totals?.changed ?? 0,\n  unchanged: report.totals?.unchanged ?? 0,\n  parse_errors: parseErrors.length,\n  errors: parseErrors.map(r => r.source || 'unknown'),\n  top_pick: report.top_pick ? { name: report.top_pick.name, score: report.top_pick.score } : null,\n  total_rows: rows.length\n};\n\nfs.appendFileSync(LOG, JSON.stringify(entry) + '\\n');\nreturn [{ json: entry }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -880
+      ],
+      "id": "beffc415-b4ec-4137-9867-19dff2f0069d",
+      "name": "Write Session Log"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "72b11398-f0ff-43dc-b6bc-d8d7e71c14d5",
+              "leftValue": "={{ $json.text.length }}",
+              "rightValue": 100000,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1328,
+        -1280
+      ],
+      "id": "9537a086-6cdc-4452-8a75-98a1bc59fb3c",
+      "name": "Per-page cap"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End of loop?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Normalize + ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Per-page cap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize + ID": {
+      "main": [
+        [
+          {
+            "node": "Diff vs Previous Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diff vs Previous Run": {
+      "main": [
+        [
+          {
+            "node": "Persist JSONL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist JSONL": {
+      "main": [
+        [
+          {
+            "node": "Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Run": {
+      "main": [
+        [
+          {
+            "node": "Build Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "End of loop?": {
+      "main": [
+        [
+          {
+            "node": "Load Run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report": {
+      "main": [
+        [
+          {
+            "node": "Send Complete Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Top Pick",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Complete Report": {
+      "main": [
+        [
+          {
+            "node": "Write Session Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Per-page cap": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "vb1XSkpCuBcin7U5"
+  },
+  "versionId": "8666b3a8-cd05-4bd3-adc9-cb86437e5e65",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cdad2b7e148d9a6e95d20c8869a7f8b47e4dddd3152e8b8d203ee7172e295c82"
+  },
+  "nodeGroups": [],
+  "id": "rTNMNa8Wvf00nBIY",
+  "tags": []
+}

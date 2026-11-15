@@ -1,0 +1,26 @@
+{
+  "task_type": "conference",
+  "version": 1,
+  "updated": "2026-11-14",
+  "weights_sum_to": 1.0,
+  "weights": {
+    "audience_fit":            0.25,
+    "decision_maker_share":    0.20,
+    "startup_program_value":   0.15,
+    "cost_efficiency":         0.15,
+    "investor_media_presence": 0.10,
+    "low_competitor_presence": 0.05,
+    "logistics_visa":          0.05,
+    "expected_return":         0.05
+  },
+  "rationale": {
+    "audience_fit": "Highest weight: if the room isn't our buyers, nothing else rescues the trip.",
+    "decision_maker_share": "Buyers in the room beat raw headcount for a B2B SaaS.",
+    "startup_program_value": "Free/subsidised passes, pitch slots and startup zones change the cost calculus.",
+    "cost_efficiency": "Bootstrapped budget — ticket+travel per qualified lead matters.",
+    "investor_media_presence": "Secondary: useful for partnerships and press, not direct sales.",
+    "low_competitor_presence": "Inverted factor: crowded with competitors = noise. Signal = 'few competitors'.",
+    "logistics_visa": "Low weight for domestic US cities; raise for international.",
+    "expected_return": "Kept deliberately small: it's an estimate, not evidence, so it can't dominate."
+  }
+}
