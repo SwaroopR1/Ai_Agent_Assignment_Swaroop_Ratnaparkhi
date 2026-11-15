@@ -9,30 +9,55 @@ error-alert workflow.
 ## Repo layout
 
 `
+## Repo layout
+
+`
 
 ├── Vybora Marketing and Partnership Opportunities Agent.json # main workflow
+
 ├── Vybora --- Error Alert.json # error-handler workflow
+
 ├── Readme.md # this file
+
 │
+
 ├── Architecture/
+
 │ └── Architecture.jpg # canvas + flow diagram
+
 │
+
 ├── Demo Output Images/
+
 │ ├── Email Inbox Image.png # nightly email as received
+
 │ ├── Report.jpg # full report body
+
 │ └── Top pick.jpg # top-pick alert body
+
 │
+
 └── n8n-files/ # runtime data (import into n8n's /data if you are using docker)
+
 ├── opportunities.jsonl # append-only memory of every opportunity
+
 ├── sources.json # source registry
+
 ├── sessions/
+
 │ ├── session-log.jsonl # one line per session summary
+
 │ └── session_id_146.jsonl # per-session staging (scored rows)
+
 └── tasks/
+
 ├── community.json # weights + rationale for community type
+
 ├── conference.json # weights + rationale for conference type
+
 └── grants.json # weights + rationale for grants type
 
+`
 `
 
 ## File-by-file
