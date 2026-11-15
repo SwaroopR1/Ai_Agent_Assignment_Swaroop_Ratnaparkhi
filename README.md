@@ -5,6 +5,9 @@ registry, extracts opportunities into a fixed schema, scores them against
 per-task-type weights, detects changes vs. the previous run, and emails a
 nightly report plus a separate "top pick" alert. Failures trigger a dedicated
 error-alert workflow.
+
+## Repo layout
+
 `
 ## Repo layout
 
@@ -61,10 +64,10 @@ error-alert workflow.
 
 ### Workflows
 - **`Vybora Marketing and Partnership Opportunities Agent.json`** — the main workflow. Schedule Trigger (cron `0 2 * * *`, Asia/Kolkata) → read `sources.json` → attach task weights → loop over sources → HTTP fetch → HTML extract → per-page size cap → LLM extract + score → normalize + ID → diff vs previous run → persist to `opportunities.jsonl` → score → build report → send full report + top-pick alert → write session log. Exposes an `errorWorkflow` link to the alert workflow below.
-- **`Vybora — Error Alert.json`** — Error Trigger → Gmail. Wired via the main (Vybora Marketing and Partnership Opportunities Agent) workflow's `errorWorkflow` setting.
+- **`Vybora — Error Alert.json`** — Error Trigger → Gmail. Sends the failing workflow name, execution ID/URL, last node, timestamp, error message and first 500 chars of the stack. Wired via the main workflow's `errorWorkflow` setting.
 
 ### Architecture
-- **`Architecture/Architecture.jpg`** — the n8n canvas. Use this to follow the data path.
+- **`Architecture/Architecture.jpg`** — the n8n canvas plus the node-level flow (input → extract → verify-score → memory → diff → report → notify). Use this to follow the data path.
 
 ### Demo Output Images
 - **`Email Inbox Image.png`** — the nightly email landing in the inbox (subject line: `Vybora nightly — N new, M changed`).
@@ -92,20 +95,18 @@ error-alert workflow.
 Edit or add a file under `tasks/<task_type>.json`. Weights must sum to 1.0. The workflow picks it up on the next execution; every row records `weights_source` so you can see which file produced the score.
 
 ## Assumptions
-- Vybora is a B2B SaaS helping corporate professionals communicate better; target buyers are comms/HR/people-ops leads; bootstrapped, so cost efficiency is weighted heavily.
+- Vybora is a startup helping corporate professionals communicate better.
 - Reference cities in `sources.json` are Bengaluru and US tech hubs; the registry is the only place a new city or source is added.
 - `access_type` in `sources.json` is treated as ground truth for access classification; the LLM's `access_class` is informational and disagreements are recorded in `conflicts`.
 
 ## Known limits
-- **Verification is single-source in v1.** Each fact is cited with `checked_date` and `source_urls`, but a second-source cross-check is not yet automated; rows are therefore effectively "single-source cited", not "cross-verified".
+- **Verification is single-source.** Each fact is cited with `checked_date` and `source_urls`, but a second-source cross-check is not yet automated; rows are therefore effectively "single-source cited", not "cross-verified".
 - **Opportunity-type coverage in this build is 3** (community, conference, grants). The engine itself is type-agnostic — adding `media`, `partnership`, `pitch_competition`, `accelerator`, `meetup` is a `tasks/<type>.json` + `sources.json` entry, no code.
-- **Cost cap is row-count based** (300 rows per run, abort via thrown error → error-alert email). It is not an LLM-token cap.
-- **Captcha/403 sources are skipped**, not bypassed; the skip is recorded by `access_type` in the registry.
-- **No action is ever taken** on the user's behalf: the agent only researches and emails recommendations.
-
+- **Cost cap is character-count based** (100000 characters per <i>run<i>). It is not an LLM-token cap.
+- **The source registry is small.** It needs to have more sources including diverse channels - APIs, html_pages, rss.
 ## What I'd add with more time
 - A real Verify node: second-source fetch + field-level `verified` flag and `conflicts` merge.
-- Token-level cost cap and per-run cost telemetry.
-- SQLite instead of JSONL for O(1) upsert and history queries.
+- Token-level cost cap.
 - Remaining opportunity types with task files and sources (media, partnerships, pitch comps, accelerators, meetups).
 - Feedback loop: a human "approve/reject" reply to the email that adjusts weights.
+- A more descriptive email report.
