@@ -96,7 +96,7 @@ Edit or add a file under `tasks/<task_type>.json`. Weights must sum to 1.0. The 
 - Reference cities in `sources.json` are Bengaluru and US tech hubs; the registry is the only place a new city or source is added.
 - `access_type` in `sources.json` is treated as ground truth for access classification; the LLM's `access_class` is informational and disagreements are recorded in `conflicts`.
 
-## Known limits (honest)
+## Known limits
 - **Verification is single-source in v1.** Each fact is cited with `checked_date` and `source_urls`, but a second-source cross-check is not yet automated; rows are therefore effectively "single-source cited", not "cross-verified".
 - **Opportunity-type coverage in this build is 3** (community, conference, grants). The engine itself is type-agnostic — adding `media`, `partnership`, `pitch_competition`, `accelerator`, `meetup` is a `tasks/<type>.json` + `sources.json` entry, no code.
 - **Cost cap is row-count based** (300 rows per run, abort via thrown error → error-alert email). It is not an LLM-token cap.
