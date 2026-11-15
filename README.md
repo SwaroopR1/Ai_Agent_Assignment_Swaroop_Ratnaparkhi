@@ -61,7 +61,7 @@ error-alert workflow.
 
 ### Workflows
 - **`Vybora Marketing and Partnership Opportunities Agent.json`** — the main workflow. Schedule Trigger (cron `0 2 * * *`, Asia/Kolkata) → read `sources.json` → attach task weights → loop over sources → HTTP fetch → HTML extract → per-page size cap → LLM extract + score → normalize + ID → diff vs previous run → persist to `opportunities.jsonl` → score → build report → send full report + top-pick alert → write session log. Exposes an `errorWorkflow` link to the alert workflow below.
-- **`Vybora — Error Alert.json`** — Error Trigger → Gmail. Sends the failing workflow name, execution ID/URL, last node, timestamp, error message and first 500 chars of the stack. Wired via the main workflow's `errorWorkflow` setting.
+- **`Vybora — Error Alert.json`** — Error Trigger → Gmail. Wired via the main (Vybora Marketing and Partnership Opportunities Agent) workflow's `errorWorkflow` setting.
 
 ### Architecture
 - **`Architecture/Architecture.jpg`** — the n8n canvas plus the node-level flow (input → extract → verify-score → memory → diff → report → notify). Use this to follow the data path.
