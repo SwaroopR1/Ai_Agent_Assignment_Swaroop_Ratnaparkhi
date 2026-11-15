@@ -91,7 +91,7 @@ error-alert workflow.
 4. Set the destination email on the three Gmail nodes (currently `swaroop.ratnaparkhi@gmail.com`).
 5. Run the main workflow manually once, then enable it. It will fire at 02:00 Asia/Kolkata.
 
-   No API keys or secrets are in this repo. Workflow JSONs reference n8n credentials by credential ID — an opaque pointer, not a secret; it only resolves inside the owning n8n instance.
+   No API keys or secrets are in this repo.
 
 
 
