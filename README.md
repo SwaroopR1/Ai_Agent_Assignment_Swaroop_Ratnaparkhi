@@ -64,7 +64,7 @@ error-alert workflow.
 - **`Vybora — Error Alert.json`** — Error Trigger → Gmail. Wired via the main (Vybora Marketing and Partnership Opportunities Agent) workflow's `errorWorkflow` setting.
 
 ### Architecture
-- **`Architecture/Architecture.jpg`** — the n8n canvas plus the node-level flow (input → extract → verify-score → memory → diff → report → notify). Use this to follow the data path.
+- **`Architecture/Architecture.jpg`** — the n8n canvas. Use this to follow the data path.
 
 ### Demo Output Images
 - **`Email Inbox Image.png`** — the nightly email landing in the inbox (subject line: `Vybora nightly — N new, M changed`).
