@@ -5,9 +5,6 @@ registry, extracts opportunities into a fixed schema, scores them against
 per-task-type weights, detects changes vs. the previous run, and emails a
 nightly report plus a separate "top pick" alert. Failures trigger a dedicated
 error-alert workflow.
-
-## Repo layout
-
 `
 ## Repo layout
 
